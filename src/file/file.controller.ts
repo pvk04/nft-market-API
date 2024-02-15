@@ -33,11 +33,20 @@ export class FileController {
   async getImage(@Param('imageName') imageName: string, @Res() res: Response) {
     try {
       const imagePath = join(__dirname, '..', '..', 'static', 'nft', imageName);
-      const imageStream = fs.createReadStream(imagePath);
+      if (fs.existsSync(imagePath)) {
+        const imageStream = fs.createReadStream(imagePath);
+        const imageFormat = imageName.split('.')?.[1];
 
-      res.setHeader('Content-Type', 'image/webp');
+        if (imageFormat === 'webp') {
+          res.setHeader('Content-Type', 'image/webp');
+        } else if (imageFormat === 'svg') {
+          res.setHeader('Content-Type', 'svg+xml');
+        }
 
-      imageStream.pipe(res);
+        imageStream.pipe(res);
+      } else {
+        res.status(404).send('Изображение не найдено');
+      }
     } catch (error) {
       console.error('Ошибка при отправке изображения:', error);
       res.status(404).send('Изображение не найдено');
